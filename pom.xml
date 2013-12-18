@@ -8,6 +8,16 @@
   <properties>
     <forge.api.version>1.4.3.Final</forge.api.version>
   </properties>
+   <developers>
+     <developer>
+        <id>GKC</id>
+        <name>gakam clovis</name>
+        <email>clovis.gakam@adorsys.com</email>
+        <organization>Adorsys SA</organization>
+        <organizationUrl>http://www.adorsys.cm/</organizationUrl>
+        <roles><role>Developer</role></roles>
+     </developer>
+   </developers>
   <dependencyManagement>
     <dependencies>
       <dependency>
