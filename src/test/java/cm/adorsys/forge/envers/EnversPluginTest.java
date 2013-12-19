@@ -1,35 +1,41 @@
 package cm.adorsys.forge.envers;
 
+import javax.inject.Inject;
+
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.forge.project.Project;
+import org.jboss.forge.project.dependencies.DependencyResolver;
 import org.jboss.forge.test.AbstractShellTest;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Test;
 
 public class EnversPluginTest extends AbstractShellTest
 {
-   @Deployment
-   public static JavaArchive getDeployment()
-   {
-      return AbstractShellTest.getDeployment()
-            .addPackages(true, EnversPlugin.class.getPackage());
-   }
+	@Inject
+	private DependencyResolver resolver;
 
-   @Test
-   public void testDefaultCommand() throws Exception
-   {
-      getShell().execute("envers");
-   }
+	@Deployment
+	public static JavaArchive getDeployment()
+	{
+		return AbstractShellTest.getDeployment()
+				.addPackages(true, EnversPlugin.class.getPackage());
+	}
 
-   @Test
-   public void testCommand() throws Exception
-   {
-      getShell().execute("envers command");
-   }
+	@Test
+	public void testSetupCommand() throws Exception
+	{
+		Project p = initializeJavaProject();
+		 queueInputLines("y");
+		getShell().execute("envers setup");
+	}
+	
+	@Test
+	public void testAuditEntityCommand() throws Exception
+	{
+		Project p = initializeJavaProject();
+		 queueInputLines("y");
+		getShell().execute("envers setup");
+	}
 
-   @Test
-   public void testPrompt() throws Exception
-   {
-      queueInputLines("y");
-      getShell().execute("envers prompt foo bar");
-   }
+
 }

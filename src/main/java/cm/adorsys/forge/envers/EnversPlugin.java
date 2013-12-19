@@ -6,8 +6,10 @@ import java.util.List;
 
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
+import javax.persistence.Entity;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.envers.Audited;
 import org.jboss.forge.parser.java.Field;
 import org.jboss.forge.parser.java.JavaClass;
 import org.jboss.forge.parser.xml.Node;
@@ -18,6 +20,7 @@ import org.jboss.forge.project.dependencies.ScopeType;
 import org.jboss.forge.project.facets.DependencyFacet;
 import org.jboss.forge.project.facets.JavaSourceFacet;
 import org.jboss.forge.project.facets.ResourceFacet;
+import org.jboss.forge.project.facets.events.InstallFacets;
 import org.jboss.forge.resources.FileResource;
 import org.jboss.forge.resources.java.JavaResource;
 import org.jboss.forge.shell.PromptType;
@@ -34,29 +37,25 @@ import org.jboss.forge.shell.plugins.PipeIn;
 import org.jboss.forge.shell.plugins.PipeOut;
 import org.jboss.forge.shell.plugins.Plugin;
 import org.jboss.forge.shell.plugins.RequiresFacet;
-import org.jboss.forge.shell.plugins.RequiresPackagingType;
 import org.jboss.forge.shell.plugins.RequiresProject;
-import org.jboss.forge.shell.plugins.RequiresResource;
 import org.jboss.forge.shell.plugins.SetupCommand;
-import org.jboss.solder.core.Requires;
+import org.jboss.forge.spec.javaee.PersistenceFacet;
 
 import cm.adorsys.forge.envers.exceptions.UnAuditableEntityException;
 import cm.adorsys.forge.envers.exceptions.UnAuditableFieldException;
-
 /**
  *@author clovis gakam
  */
 @Alias("envers")
 @RequiresProject
 @Help("This plugin will help you setting up Envers .")
-@RequiresFacet({ResourceFacet.class, DependencyFacet.class, JavaSourceFacet.class})
+@RequiresFacet({PersistenceFacet.class,ResourceFacet.class, DependencyFacet.class, JavaSourceFacet.class})
 public class EnversPlugin implements Plugin
 {
-	public static String ENVERS_GROUPID_DEPENDENCY = "org.jboss.envers" ;
+
+	public static String ENVERS_GROUPID_DEPENDENCY = "org.hibernate" ;
 	public static String ENVERS_ARTIFACTID_DEPENDENCY = "hibernate-envers" ;
-	public static String ENVERS_VERSION_DEPENDENCY = "3.0.1.final" ;
-	public static String AUDITABLE_ENTITY_ANNOTATION = "javax.persistence.Entity" ;
-	public static String AUDIT_ANNOTATION = "javax.persistence.Entity" ;
+	public static String ENVERS_VERSION_DEPENDENCY = "3.6.6.Final" ;
 	@Inject
 	private ShellPrompt prompt;
 
@@ -69,25 +68,33 @@ public class EnversPlugin implements Plugin
 
 	@Inject
 	private Event<PickupResource> pickup;
+
+	@Inject
+	private Event<InstallFacets> event;
+
 	private DependencyFacet dependencyFacet;
 
 	@SetupCommand
 	public void setupCommand( PipeOut out)
 	{
-		List<ScopeType> bundle =  Arrays.asList(ScopeType.COMPILE,ScopeType.PROVIDED);
-		ScopeType selectedScope = prompt.promptChoiceTyped("select envers dependency scope  ", bundle);
-		installEnversDependencies(out, selectedScope);
-		setupDefaultProperties(out);
-
+		if(!project.hasFacet(PersistenceFacet.class)){
+			ShellMessages.error(out, "you must setup persistence before use Envers ");
+			return ;
+		}
+			List<ScopeType> bundle =  Arrays.asList(ScopeType.COMPILE,ScopeType.PROVIDED);
+			ScopeType selectedScope = prompt.promptChoiceTyped("select envers dependency scope  ", bundle);
+			installEnversDependencies(out, selectedScope);
+			//setupDefaultProperties(out);
 	}
 
 
 	@DefaultCommand
 	public void defaultCommand(@PipeIn String in, PipeOut out)
 	{
-		out.println("Executed default command."); 
+		ShellMessages.success(out, "Enver pluggin are setup successfuly ");
 	}
-	@Command("audit-entity")
+
+	@Command(value="audit-entity",help="add @Audited annotation on Entity class")
 	public void auditEntiyCommand(@PipeIn String in, PipeOut out, @Option(name="auditable-entity",required=true,type=PromptType.JAVA_CLASS) JavaResource auditableJavaSource)
 	{
 		final JavaSourceFacet javaSourceFacet = project.getFacet(JavaSourceFacet.class);
@@ -106,13 +113,25 @@ public class EnversPlugin implements Plugin
 		}
 	}
 
-	@Command("audit-field")
-	public void auditFieldCommand(@PipeIn String in, PipeOut out)
+	@Command(value="audit-field",help="add @Audited annotation on Entity field")
+	public void auditFieldCommand(@PipeIn String in, PipeOut out,@Option(name="auditable-entity",required=true,type=PromptType.JAVA_CLASS) JavaResource auditableJavaSource , 
+			@Option(name="fielname",required=true) String fieldname )
 	{
-		if (prompt.promptBoolean("Do you like writing Forge plugins?"))
-			out.println("I am happy.");
-		else
-			out.println("I am sad.");
+		final JavaSourceFacet javaSourceFacet = project.getFacet(JavaSourceFacet.class);
+		try {
+			JavaClass auditableClass = (JavaClass) auditableJavaSource.getJavaSource();
+			Field<JavaClass> fieldToAudited = auditableClass.getField(fieldname);
+			auditField(fieldToAudited);
+			javaSourceFacet.saveJavaSource(auditableClass);
+			pickup.fire(new PickupResource(javaSourceFacet.getJavaResource(auditableClass)));
+
+		} catch (UnAuditableFieldException e) {
+			ShellMessages.error(out, e.getMessage());
+		} catch (FileNotFoundException e) {
+			ShellMessages.error(out, e.getMessage());
+		} catch (Exception e) {
+			ShellMessages.error(out, e.getMessage());
+		}
 	}
 
 	private void installEnversDependencies(PipeOut out,ScopeType scopeType)
@@ -124,13 +143,12 @@ public class EnversPlugin implements Plugin
 				.setGroupId(ENVERS_GROUPID_DEPENDENCY)
 				.setArtifactId(ENVERS_ARTIFACTID_DEPENDENCY)
 				.setScopeType(scopeType);
-		out.println("Executed named command without args.");
 		if (!dependencyFacet.hasDirectDependency(enversPersistenceDependency))
 		{
 			dependencyFacet.setProperty("envers.version", ENVERS_VERSION_DEPENDENCY);
 			dependencyFacet.addDirectDependency(enversPersistenceDependency.setVersion("${envers.version}"));
 		}
-		out.println("enver dependency are installed successfully."); 
+		ShellMessages.success(out, "enver dependency are installed successfully.");
 	}
 
 	private void setupDefaultProperties(PipeOut out)
@@ -141,7 +159,7 @@ public class EnversPlugin implements Plugin
 		for (int i = 0; i < 5; i++) {
 			addPropertyToPersistenceXml("name"+i, "value"+i, persistencceXml);
 		}
-		out.println("default envers persistence xml properties are configure correctly."); 
+		ShellMessages.success(out, "default envers persistence xml properties are configure correctly.");
 	}
 
 	private void addPropertyToPersistenceXml(String name, String value,FileResource<?> resource){
@@ -175,19 +193,18 @@ public class EnversPlugin implements Plugin
 	}
 
 	private void auditEntity(JavaClass javaClass) throws UnAuditableEntityException{
-		if(!isAuditableEntity(javaClass)) throw new UnAuditableEntityException(javaClass.getName()+" is not auditable ,java class must have "+AUDIT_ANNOTATION+" to be audited !");
-		if(!javaClass.hasAnnotation(AUDITABLE_ENTITY_ANNOTATION)){
-			javaClass.addImport(AUDIT_ANNOTATION);
-			javaClass.addAnnotation(AUDIT_ANNOTATION);
-		}
+		if(!isAuditableEntity(javaClass)) throw new UnAuditableEntityException(javaClass.getName()+" is not auditable ,java class must have "+Entity.class.getSimpleName()+" to be audited !");
+		javaClass.addImport(Audited.class);
+		if(!javaClass.hasAnnotation(Audited.class)) javaClass.addAnnotation(Audited.class);
 	}
 
 	private void auditField(Field<JavaClass> field) throws UnAuditableFieldException{
-		if(!isAuditableEntity(field.getOrigin())) throw new UnAuditableFieldException(field.getName()+" is not auditable ,java class must have "+AUDIT_ANNOTATION+" to be audited !");
-		if(!field.hasAnnotation(AUDIT_ANNOTATION)) field.addAnnotation(AUDIT_ANNOTATION);
+		if(!isAuditableEntity(field.getOrigin())) throw new UnAuditableFieldException(field.getName()+" is not auditable ,java class must have "+Audited.class.getSimpleName()+" to be audited !");
+		if(!field.hasAnnotation(Audited.class))field.addAnnotation(Audited.class);
+		field.getOrigin().addImport(Audited.class);
 	}
 
 	public boolean isAuditableEntity(JavaClass javaClass){
-		return javaClass.hasAnnotation(AUDITABLE_ENTITY_ANNOTATION);
+		return javaClass.hasAnnotation(Entity.class);
 	}
 }
