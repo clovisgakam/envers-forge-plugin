@@ -5,19 +5,21 @@
   <groupId>cm.adorsys.forge.envers</groupId>
   <artifactId>envers-forge-plugin</artifactId>
   <version>1.0.0-SNAPSHOT</version>
+  <developers>
+    <developer>
+      <id>GKC</id>
+      <name>gakam clovis</name>
+      <email>clovis.gakam@adorsys.com</email>
+      <organization>Adorsys SA</organization>
+      <organizationUrl>http://www.adorsys.cm/</organizationUrl>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+  </developers>
   <properties>
     <forge.api.version>1.4.3.Final</forge.api.version>
   </properties>
-   <developers>
-     <developer>
-        <id>GKC</id>
-        <name>gakam clovis</name>
-        <email>clovis.gakam@adorsys.com</email>
-        <organization>Adorsys SA</organization>
-        <organizationUrl>http://www.adorsys.cm/</organizationUrl>
-        <roles><role>Developer</role></roles>
-     </developer>
-   </developers>
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -72,6 +74,11 @@
       <groupId>org.jboss.forge</groupId>
       <artifactId>forge-shell</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.4</version>
     </dependency>
   </dependencies>
   <repositories>
