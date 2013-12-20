@@ -18,6 +18,7 @@
     </developer>
   </developers>
   <properties>
+    <freemarker.version>2.3.19</freemarker.version>
     <forge.api.version>1.4.3.Final</forge.api.version>
   </properties>
   <dependencyManagement>
@@ -37,6 +38,18 @@
       </dependency>
       <dependency>
         <groupId>org.jboss.forge</groupId>
+        <artifactId>forge-javaee-api</artifactId>
+        <version>${forge.api.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.freemarker</groupId>
+        <artifactId>freemarker</artifactId>
+        <version>${freemarker.version}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.forge</groupId>
         <artifactId>forge-test-harness</artifactId>
         <version>${forge.api.version}</version>
         <scope>test</scope>
@@ -47,9 +60,20 @@
         <version>${forge.api.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.jboss.forge</groupId>
+        <artifactId>forge-javaee-impl</artifactId>
+        <version>${forge.api.version}</version>
+        <scope>provided</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-envers</artifactId>
+      <version>3.6.6.Final</version>
+    </dependency>
     <dependency>
       <groupId>javax.enterprise</groupId>
       <artifactId>cdi-api</artifactId>
@@ -67,41 +91,28 @@
     </dependency>
     <dependency>
       <groupId>org.jboss.forge</groupId>
-      <artifactId>forge-test-harness</artifactId>
+      <artifactId>forge-javaee-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.forge</groupId>
+      <artifactId>forge-javaee-impl</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.forge</groupId>
+      <artifactId>forge-test-harness</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.jboss.forge</groupId>
       <artifactId>forge-shell</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-envers</artifactId>
-      <version>3.6.6.Final</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.forge</groupId>
-      <artifactId>forge-maven-api</artifactId>
-      <version>${forge.api.version}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.forge</groupId>
-      <artifactId>forge-javaee-api</artifactId>
-      <version>${forge.api.version}</version>
-      <scope>provided</scope>
-    </dependency>
-        <dependency>
-    <groupId>org.jboss.forge</groupId>
-    <artifactId>forge-javaee-impl</artifactId>
-    <version>${forge.api.version}</version>
-    <scope>test</scope>
     </dependency>
   </dependencies>
   <repositories>
@@ -111,7 +122,7 @@
     </repository>
   </repositories>
   <build>
-    <finalName>envers-forge-plugin</finalName>
+    <finalName>forge-envers-plugin</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
