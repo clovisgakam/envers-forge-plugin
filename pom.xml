@@ -43,12 +43,6 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>org.freemarker</groupId>
-        <artifactId>freemarker</artifactId>
-        <version>${freemarker.version}</version>
-        <scope>compile</scope>
-      </dependency>
-      <dependency>
         <groupId>org.jboss.forge</groupId>
         <artifactId>forge-test-harness</artifactId>
         <version>${forge.api.version}</version>
@@ -93,11 +87,6 @@
       <groupId>org.jboss.forge</groupId>
       <artifactId>forge-javaee-api</artifactId>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.freemarker</groupId>
-      <artifactId>freemarker</artifactId>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.jboss.forge</groupId>
