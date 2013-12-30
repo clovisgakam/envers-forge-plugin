@@ -5,8 +5,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import org.jboss.forge.env.Configuration;
-import org.jboss.forge.env.ConfigurationFactory;
 import org.jboss.forge.project.dependencies.Dependency;
 import org.jboss.forge.project.dependencies.DependencyBuilder;
 import org.jboss.forge.project.dependencies.DependencyInstaller;
@@ -25,7 +23,7 @@ import org.jboss.forge.spec.javaee.PersistenceFacet;
 public class EnversPluginFacet  extends BaseFacet{
 	public static final String ENVERS_GROUPID_DEPENDENCY = "org.hibernate";
 	public static final String ENVERS_ARTIFACTID_DEPENDENCY = "hibernate-envers";
-	public static final String ENVERS_VERSION_DEPENDENCY = "3.6.6.Final";
+	public static final String ENVERS_VERSION_DEPENDENCY = "4.2.0.Final";
 
 	@Inject
 	private ShellPrompt prompt;
@@ -53,7 +51,7 @@ public class EnversPluginFacet  extends BaseFacet{
 			if (!installer.isInstalled(getProject(), requirement)) {
 				DependencyFacet deps = project.getFacet(DependencyFacet.class);
 				if (!deps.hasDirectDependency(requirement)) {
-					installer.install(getProject(), requirement,ScopeType.COMPILE);
+					installer.install(getProject(), requirement,ScopeType.PROVIDED);
 				}
 			}
 		}
